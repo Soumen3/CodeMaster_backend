@@ -2,9 +2,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from app.routes import auth_google, auth_github
+from app.routes import auth_google, auth_github, problems, tags
 from app.database.connection import init_db
+import os
 
 
 @asynccontextmanager
@@ -17,9 +19,30 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Configure CORS
+origins = [
+    "http://localhost:5173",  # Vite default port
+    "http://localhost:3000",  # Alternative frontend port
+    os.getenv("FRONTEND_URL", "http://localhost:5173"),  # From environment variable
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
+
 # include auth routes
 app.include_router(auth_google.router)
 app.include_router(auth_github.router)
+
+# include problem routes
+app.include_router(problems.router)
+
+# include tag routes
+app.include_router(tags.router)
 
 
 @app.get("/")
