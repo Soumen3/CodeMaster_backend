@@ -62,6 +62,7 @@ class TestCaseBase(BaseModel):
     """Base schema for test cases"""
     input_data: str
     expected_output: str
+    explanation: Optional[str] = None
     is_hidden: bool = False
 
 
@@ -74,6 +75,7 @@ class TestCaseUpdate(BaseModel):
     """Schema for updating test case fields"""
     input_data: Optional[str] = None
     expected_output: Optional[str] = None
+    explanation: Optional[str] = None
     is_hidden: Optional[bool] = None
 
 
@@ -81,6 +83,35 @@ class TestCaseResponse(TestCaseBase):
     """Schema for test case response"""
     id: int
     problem_id: int
+
+    class Config:
+        from_attributes = True
+
+
+# ============= Constraint Schemas =============
+
+class ConstraintBase(BaseModel):
+    """Base schema for constraints"""
+    description: str
+    order: int = 0
+
+
+class ConstraintCreate(ConstraintBase):
+    """Schema for creating a new constraint"""
+    problem_id: int
+
+
+class ConstraintUpdate(BaseModel):
+    """Schema for updating constraint fields"""
+    description: Optional[str] = None
+    order: Optional[int] = None
+
+
+class ConstraintResponse(ConstraintBase):
+    """Schema for constraint response"""
+    id: int
+    problem_id: int
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -113,6 +144,7 @@ class ProblemResponse(ProblemBase):
     created_at: datetime
     updated_at: datetime
     test_cases: Optional[List[TestCaseResponse]] = None
+    constraints: Optional[List[ConstraintResponse]] = None
 
     class Config:
         from_attributes = True

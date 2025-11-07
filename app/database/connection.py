@@ -4,6 +4,7 @@ from sqlalchemy.pool import StaticPool
 import os
 from typing import Generator
 
+
 # Read database URL from environment
 DATABASE_URL = os.getenv(
     "DATABASE_URL",

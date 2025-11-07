@@ -42,8 +42,9 @@ class Problem(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    # Relationship to test cases
+    # Relationships
     test_cases = relationship("TestCase", back_populates="problem", cascade="all, delete-orphan")
+    constraints = relationship("Constraint", back_populates="problem", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Problem(id={self.id}, title={self.title}, difficulty={self.difficulty})>"
@@ -56,6 +57,7 @@ class TestCase(Base):
     problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=False, index=True)
     input_data = Column(Text, nullable=False)
     expected_output = Column(Text, nullable=False)
+    explanation = Column(Text, nullable=True)  # Optional explanation for the test case
     is_hidden = Column(Boolean, default=False, nullable=False)
 
     # Relationship to problem
@@ -63,6 +65,22 @@ class TestCase(Base):
 
     def __repr__(self):
         return f"<TestCase(id={self.id}, problem_id={self.problem_id}, is_hidden={self.is_hidden})>"
+
+
+class Constraint(Base):
+    __tablename__ = "constraints"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    order = Column(Integer, default=0, nullable=False)  # To maintain order of constraints
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationship to problem
+    problem = relationship("Problem", back_populates="constraints")
+
+    def __repr__(self):
+        return f"<Constraint(id={self.id}, problem_id={self.problem_id}, order={self.order})>"
 
 
 class Tag(Base):
