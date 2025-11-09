@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from app.routes import auth_google, auth_github, problems, tags, constraints, compile_problem, submissions, auth
+from app.routes import auth_google, auth_github, problems, tags, constraints, compile_problem, submissions, auth, users
 from app.database.connection import init_db
 import os
 from fastapi.responses import JSONResponse
@@ -54,6 +54,9 @@ app.include_router(compile_problem.router)
 
 # include submission routes
 app.include_router(submissions.router)
+
+# include user routes
+app.include_router(users.router)
 
 
 @app.get("/")

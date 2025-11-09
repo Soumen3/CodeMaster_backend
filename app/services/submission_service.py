@@ -134,6 +134,20 @@ def submit_problem_code(
     # Only save to database if submission is ACCEPTED
     solution_id = None
     if submission_status == SubmissionStatus.ACCEPTED:
+        # Check if there's an existing accepted submission for this problem and language
+        existing_submission = db.query(Solution).filter(
+            Solution.user_id == user_id,
+            Solution.problem_id == problem_id,
+            Solution.language == language,
+            Solution.status == SubmissionStatus.ACCEPTED
+        ).first()
+        
+        # If exists, delete the old one
+        if existing_submission:
+            db.delete(existing_submission)
+            db.flush()  # Ensure deletion is processed before adding new one
+        
+        # Create new solution record
         solution_data = SolutionCreate(
             problem_id=problem_id,
             user_id=user_id,
