@@ -15,7 +15,10 @@ from ..services.submission_service import (
     get_submission_by_id
 )
 from ..core.security import get_current_user
-from ..database.models import User
+from ..database.models import User, Solution, SubmissionStatus
+from icecream import ic
+
+ic.disable()
 
 router = APIRouter(
     tags=["submissions"],
@@ -107,6 +110,60 @@ async def get_my_problem_submissions(
         submissions = get_problem_submissions(current_user.id, problem_id, db, skip, limit)
         return submissions
     except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/problem/{problem_id}/accepted", response_model=SolutionResponse)
+async def get_accepted_submission(
+    problem_id: int,
+    language: str = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get the user's last accepted submission for a specific problem.
+    Returns the most recent accepted solution to pre-fill the code editor.
+    
+    Args:
+        problem_id: Problem ID
+        language: Optional language filter (python, cpp, java, c, javascript)
+        current_user: Currently authenticated user
+        db: Database session
+        
+    Returns:
+        Last accepted solution or 404 if none found
+    """
+    try:
+        ic(f"\n🔍 Looking for accepted submission - User: {current_user.id}, Problem: {problem_id}, Language: {language}")
+        
+        # Build query with optional language filter
+        query = db.query(Solution).filter(
+            Solution.user_id == current_user.id,
+            Solution.problem_id == problem_id,
+            Solution.status == SubmissionStatus.ACCEPTED
+        )
+        
+        if language:
+            query = query.filter(Solution.language == language)
+        
+        # Get the most recent accepted submission
+        submission = query.order_by(Solution.created_at.desc()).first()
+        
+        if not submission:
+            ic(f"❌ No accepted submission found for language: {language}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No accepted submission found for this problem{' in ' + language if language else ''}"
+            )
+        
+        ic(f"✅ Found accepted submission: ID={submission.id}, Language={submission.language}")
+        return submission
+    except HTTPException:
+        raise
+    except Exception as e:
+        ic(f"❌ Error in get_accepted_submission: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.ic_exc()
         raise HTTPException(status_code=400, detail=str(e))
 
 

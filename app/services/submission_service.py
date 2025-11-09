@@ -2,7 +2,7 @@ import time
 from sqlalchemy.orm import Session
 from ..database.models import Problem, TestCase, Solution, SubmissionStatus
 from ..database.schemas import SolutionCreate, SolutionResponse
-from .compile_problem_service import execute_python, execute_javascript, execute_cpp, execute_java, execute_c, compare_outputs
+from .compile_problem_service import execute_python, execute_javascript, execute_cpp, execute_java, execute_c, compare_outputs, convert_input_format
 
 
 def submit_problem_code(
@@ -62,8 +62,11 @@ def submit_problem_code(
         start_time = time.time()
         
         try:
+            # Convert JSON input to stdin format (same as Run Code)
+            input_str = convert_input_format(test_case.input_data)
+            
             # Execute the code
-            output, error = execute_func(code, test_case.input_data)
+            output, error = execute_func(code, input_str)
             execution_time = time.time() - start_time
             total_execution_time += execution_time
             

@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from ..database.connection import get_db
 from ..database.schemas import CompileProblemRequest, CompileProblemResponse
 from ..services.compile_problem_service import compile_problem_code
+from icecream import ic
+
+ic.disable()
 
 router = APIRouter(
     tags=["compile_problem"],
@@ -14,7 +17,7 @@ async def compile_problem(
     compile_request: CompileProblemRequest,
     db: Session = Depends(get_db)
 ):
-    print(compile_request)
+    ic(compile_request)
     """
     Compile and run code for a given problem.
     

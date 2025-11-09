@@ -6,6 +6,10 @@ import time
 from sqlalchemy.orm import Session
 from ..database.models import Problem, TestCase
 from ..database.schemas import CompileProblemRequest, TestCaseResult
+from icecream import ic
+
+
+ic.disable()
 
 
 def normalize_output(output: str) -> str:
@@ -269,7 +273,7 @@ def execute_python(code: str, input_data: str) -> tuple:
                 timeout=5,
                 encoding='utf-8'
             )
-            print(result)
+            ic(result)
             
             if result.returncode != 0:
                 return None, result.stderr
