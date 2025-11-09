@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 
 from ..database.models import User, OAuthProvider
 from ..database.schemas import UserCreate, UserUpdate
+from ..core.security import create_access_token
 
 
 def create_or_update_user(
@@ -82,23 +83,28 @@ def build_auth_response_data(
 ) -> Dict:
     """
     Build structured authentication response data.
+    Creates a JWT token for API authentication.
     
     Args:
         user: User database object
-        id_token: OAuth ID token
-        access_token: OAuth access token
+        id_token: OAuth ID token (from OAuth provider)
+        access_token: OAuth access token (from OAuth provider)
     
     Returns:
         Dict: Structured user data with tokens
     """
+    # Create JWT token for API authentication
+    jwt_token = create_access_token(data={"sub": user.id})
+    
     return {
         "id": user.id,
         "email": user.email,
         "name": user.name,
         "avatar_url": user.avatar_url,
         "provider": user.provider.value,
-        "id_token": id_token,
-        "access_token": access_token
+        "token": jwt_token,  # JWT token for API calls
+        "id_token": id_token,  # OAuth ID token (optional)
+        "access_token": access_token  # OAuth access token (optional)
     }
 
 

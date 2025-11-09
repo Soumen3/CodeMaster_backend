@@ -15,6 +15,14 @@ class Difficulty(str, Enum):
     HARD = "hard"
 
 
+class SubmissionStatus(str, Enum):
+    ACCEPTED = "accepted"
+    WRONG_ANSWER = "wrong_answer"
+    TIME_LIMIT_EXCEEDED = "time_limit_exceeded"
+    RUNTIME_ERROR = "runtime_error"
+    COMPILATION_ERROR = "compilation_error"
+
+
 class UserBase(BaseModel):
     name: Optional[str] = None
     email: EmailStr
@@ -124,6 +132,9 @@ class ProblemBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     description: str
     difficulty: Difficulty
+    function_name: Optional[str] = "solution"
+    parameters: Optional[str] = None  # JSON string
+    return_type: Optional[str] = None
 
 
 class ProblemCreate(ProblemBase):
@@ -136,6 +147,9 @@ class ProblemUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
     difficulty: Optional[Difficulty] = None
+    function_name: Optional[str] = None
+    parameters: Optional[str] = None
+    return_type: Optional[str] = None
 
 
 class ProblemResponse(ProblemBase):
@@ -202,3 +216,91 @@ class ProblemTagResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ============= Code Execution Schemas =============
+
+class CompileProblemRequest(BaseModel):
+    """Schema for code execution request"""
+    problem_id: int
+    code: str
+    language: str = Field(..., pattern="^(python|javascript|cpp|java|c)$")
+
+
+class TestCaseResult(BaseModel):
+    """Schema for individual test case result"""
+    input: str
+    expected_output: str
+    actual_output: Optional[str] = None
+    passed: bool
+    error: Optional[str] = None
+    execution_time: Optional[float] = None
+
+
+class CompileProblemResponse(BaseModel):
+    """Schema for code execution response"""
+    success: bool
+    message: str
+    test_results: Optional[List[TestCaseResult]] = None
+    total_tests: int = 0
+    passed_tests: int = 0
+    execution_time: Optional[float] = None
+
+
+# ============= Solution Schemas =============
+
+class SolutionBase(BaseModel):
+    """Base schema for solutions"""
+    code: str
+    language: str = Field(..., pattern="^(python|javascript|cpp|java|c)$")
+
+
+class SolutionCreate(SolutionBase):
+    """Schema for creating a new solution"""
+    problem_id: int
+    user_id: int
+    status: SubmissionStatus
+
+
+class SolutionUpdate(BaseModel):
+    """Schema for updating a solution"""
+    code: Optional[str] = None
+    language: Optional[str] = Field(None, pattern="^(python|javascript|cpp|java|c)$")
+    status: Optional[SubmissionStatus] = None
+
+
+class SolutionResponse(SolutionBase):
+    """Schema for solution response"""
+    id: int
+    user_id: int
+    problem_id: int
+    status: SubmissionStatus
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SolutionListResponse(BaseModel):
+    """Schema for solution list item (minimal info)"""
+    id: int
+    problem_id: int
+    language: str
+    status: SubmissionStatus
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SubmitProblemResponse(BaseModel):
+    """Schema for code submission response"""
+    solution_id: int
+    success: bool
+    status: str
+    message: str
+    test_results: Optional[List[dict]] = None
+    total_tests: int = 0
+    passed_tests: int = 0
+    execution_time: Optional[float] = None
+

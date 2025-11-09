@@ -18,6 +18,14 @@ class Difficulty(str, enum.Enum):
     HARD = "hard"
 
 
+class SubmissionStatus(str, enum.Enum):
+    ACCEPTED = "accepted"
+    WRONG_ANSWER = "wrong_answer"
+    TIME_LIMIT_EXCEEDED = "time_limit_exceeded"
+    RUNTIME_ERROR = "runtime_error"
+    COMPILATION_ERROR = "compilation_error"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -39,6 +47,12 @@ class Problem(Base):
     title = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=False)
     difficulty = Column(Enum(Difficulty), nullable=False, index=True)
+    
+    # Code template fields for dynamic snippets
+    function_name = Column(String(100), default="solution", nullable=True)
+    parameters = Column(Text, nullable=True)  # JSON object: {"nums": "list[int]", "target": "int"}
+    return_type = Column(String(50), nullable=True)  # e.g., "list", "int", "str"
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
@@ -101,3 +115,22 @@ class ProblemTag(Base):
 
     def __repr__(self):
         return f"<ProblemTag(problem_id={self.problem_id}, tag_id={self.tag_id})>"
+
+
+class Solution(Base):
+    __tablename__ = "solutions"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=False, index=True)
+    code = Column(Text, nullable=False)
+    language = Column(String(50), nullable=False)
+    status = Column(Enum(SubmissionStatus), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    user = relationship("User")
+    problem = relationship("Problem")
+
+    def __repr__(self):
+        return f"<Solution(id={self.id}, user_id={self.user_id}, problem_id={self.problem_id}, status={self.status})>"

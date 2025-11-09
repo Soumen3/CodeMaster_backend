@@ -4,9 +4,10 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from app.routes import auth_google, auth_github, problems, tags, constraints
+from app.routes import auth_google, auth_github, problems, tags, constraints, compile_problem, submissions, auth
 from app.database.connection import init_db
 import os
+from fastapi.responses import JSONResponse
 
 
 @asynccontextmanager
@@ -35,6 +36,7 @@ app.add_middleware(
 )
 
 # include auth routes
+app.include_router(auth.router)
 app.include_router(auth_google.router)
 app.include_router(auth_github.router)
 
@@ -47,7 +49,13 @@ app.include_router(tags.router)
 # include constraint routes
 app.include_router(constraints.router)
 
+# include compile problem routes
+app.include_router(compile_problem.router)
+
+# include submission routes
+app.include_router(submissions.router)
+
 
 @app.get("/")
 async def read_root():
-    return {"Hello": "World"}
+    return JSONResponse(content={"message": "Welcome to the CodeMaster Backend API"})

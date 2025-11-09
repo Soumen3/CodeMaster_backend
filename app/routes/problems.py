@@ -23,6 +23,7 @@ from ..services.problem_service import (
     update_test_case as update_test_case_service,
     delete_test_case as delete_test_case_service
 )
+from ..services.code_template_service import get_code_template, parse_parameters_from_json
 
 router = APIRouter(
     tags=["problems"],
@@ -198,3 +199,44 @@ async def delete_test_case(
         db: Database session
     """
     delete_test_case_service(db, testcase_id)
+
+
+@router.get("/{problem_id}/template/{language}")
+async def get_problem_template(
+    problem_id: int,
+    language: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get code template for a specific problem and language.
+    
+    Args:
+        problem_id: Problem ID
+        language: Programming language (python, javascript, cpp, java, c)
+        db: Database session
+    
+    Returns:
+        Code template string
+    """
+    from ..database.models import Problem
+    
+    # Fetch problem
+    problem = db.query(Problem).filter(Problem.id == problem_id).first()
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+    
+    # Parse parameters
+    parameters = parse_parameters_from_json(problem.parameters)
+    
+    # Generate template
+    try:
+        template = get_code_template(
+            language=language,
+            function_name=problem.function_name or "solution",
+            parameters=parameters,
+            return_type=problem.return_type
+        )
+        
+        return {"code": template}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
