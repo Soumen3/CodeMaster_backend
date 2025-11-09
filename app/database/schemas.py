@@ -295,7 +295,7 @@ class SolutionListResponse(BaseModel):
 
 class SubmitProblemResponse(BaseModel):
     """Schema for code submission response"""
-    solution_id: int
+    solution_id: Optional[int] = None  # Will be None if submission not accepted
     success: bool
     status: str
     message: str

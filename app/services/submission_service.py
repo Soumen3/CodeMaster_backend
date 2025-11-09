@@ -131,30 +131,33 @@ def submit_problem_code(
             })
             break
     
-    # Create solution record in database
-    solution_data = SolutionCreate(
-        problem_id=problem_id,
-        user_id=user_id,
-        code=code,
-        language=language,
-        status=submission_status
-    )
-    
-    solution = Solution(
-        problem_id=solution_data.problem_id,
-        user_id=solution_data.user_id,
-        code=solution_data.code,
-        language=solution_data.language,
-        status=solution_data.status
-    )
-    
-    db.add(solution)
-    db.commit()
-    db.refresh(solution)
+    # Only save to database if submission is ACCEPTED
+    solution_id = None
+    if submission_status == SubmissionStatus.ACCEPTED:
+        solution_data = SolutionCreate(
+            problem_id=problem_id,
+            user_id=user_id,
+            code=code,
+            language=language,
+            status=submission_status
+        )
+        
+        solution = Solution(
+            problem_id=solution_data.problem_id,
+            user_id=solution_data.user_id,
+            code=solution_data.code,
+            language=solution_data.language,
+            status=solution_data.status
+        )
+        
+        db.add(solution)
+        db.commit()
+        db.refresh(solution)
+        solution_id = solution.id
     
     # Prepare response
     return {
-        "solution_id": solution.id,
+        "solution_id": solution_id,  # Will be None if not accepted
         "success": submission_status == SubmissionStatus.ACCEPTED,
         "status": submission_status.value,
         "message": _get_status_message(submission_status, passed_count, len(test_cases)),
