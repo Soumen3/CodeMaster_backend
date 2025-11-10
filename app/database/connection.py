@@ -8,7 +8,7 @@ from typing import Generator
 # Read database URL from environment
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:SouMen1185@localhost:5432/codemaster"
+    # "postgresql://postgres:SouMen1185@localhost:5432/codemaster"
 )
 
 # Create engine
