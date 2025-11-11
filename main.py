@@ -8,6 +8,9 @@ from app.routes import auth_google, auth_github, problems, tags, constraints, co
 from app.database.connection import init_db
 import os
 from fastapi.responses import JSONResponse
+from app.database.admin import setup_admin
+from app.database.connection import engine, get_db
+from fastapi import Depends
 
 
 @asynccontextmanager
@@ -58,6 +61,8 @@ app.include_router(submissions.router)
 # include user routes
 app.include_router(users.router)
 
+# Setup admin interface
+setup_admin(app, engine)
 
 @app.get("/")
 async def read_root():
