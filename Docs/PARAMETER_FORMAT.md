@@ -20,7 +20,7 @@ Parameters are now stored as a simple JSON object:
 {
   "function_name": "twoSum",
   "parameters": "{\"nums\": \"list[int]\", \"target\": \"int\"}",
-  "return_type": "list"
+  "return_type": "list[int]"
 }
 ```
 
