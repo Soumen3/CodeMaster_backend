@@ -131,47 +131,47 @@ def submit_problem_code(
             })
             break
     
-    # Only save to database if submission is ACCEPTED
+    # Save all submissions to database (accepted, wrong answer, errors, etc.)
     solution_id = None
+    
+    # If submission is ACCEPTED, delete any old accepted submission for this problem and language
     if submission_status == SubmissionStatus.ACCEPTED:
-        # Check if there's an existing accepted submission for this problem and language
-        existing_submission = db.query(Solution).filter(
+        existing_accepted = db.query(Solution).filter(
             Solution.user_id == user_id,
             Solution.problem_id == problem_id,
             Solution.language == language,
             Solution.status == SubmissionStatus.ACCEPTED
         ).first()
         
-        # If exists, delete the old one
-        if existing_submission:
-            db.delete(existing_submission)
+        if existing_accepted:
+            db.delete(existing_accepted)
             db.flush()  # Ensure deletion is processed before adding new one
-        
-        # Create new solution record
-        solution_data = SolutionCreate(
-            problem_id=problem_id,
-            user_id=user_id,
-            code=code,
-            language=language,
-            status=submission_status
-        )
-        
-        solution = Solution(
-            problem_id=solution_data.problem_id,
-            user_id=solution_data.user_id,
-            code=solution_data.code,
-            language=solution_data.language,
-            status=solution_data.status
-        )
-        
-        db.add(solution)
-        db.commit()
-        db.refresh(solution)
-        solution_id = solution.id
+    
+    # Create new solution record for all submission types
+    solution_data = SolutionCreate(
+        problem_id=problem_id,
+        user_id=user_id,
+        code=code,
+        language=language,
+        status=submission_status
+    )
+    
+    solution = Solution(
+        problem_id=solution_data.problem_id,
+        user_id=solution_data.user_id,
+        code=solution_data.code,
+        language=solution_data.language,
+        status=solution_data.status
+    )
+    
+    db.add(solution)
+    db.commit()
+    db.refresh(solution)
+    solution_id = solution.id
     
     # Prepare response
     return {
-        "solution_id": solution_id,  # Will be None if not accepted
+        "solution_id": solution_id,  # Now always has a value since all submissions are saved
         "success": submission_status == SubmissionStatus.ACCEPTED,
         "status": submission_status.value,
         "message": _get_status_message(submission_status, passed_count, len(test_cases)),
