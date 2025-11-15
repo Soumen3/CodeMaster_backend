@@ -25,6 +25,7 @@ origins = [
     "http://localhost:5173",  # Vite default port
     "http://localhost:3000",  # Alternative frontend port
     "http://34.70.80.31:3000",
+    "http://code-master.work.gd",
     settings.FRONTEND_URL,  # From environment variable
 ]
 
