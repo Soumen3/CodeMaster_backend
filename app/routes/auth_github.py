@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-import os
 
+from ..core.config import settings
 from ..core.oauth import (
     get_github_authorize_url,
     exchange_github_code_for_tokens,
@@ -30,14 +30,13 @@ async def auth_github(request: Request):
     Redirects the user to GitHub's OAuth authorization page.
     """
     # Validate GitHub credentials are configured
-    if not os.getenv("GITHUB_CLIENT_ID"):
+    if not settings.GITHUB_CLIENT_ID:
         raise HTTPException(
             status_code=500, 
             detail="GitHub OAuth not configured. Please set GITHUB_CLIENT_ID in environment variables."
         )
     
-    backend_host = os.getenv("BACKEND_HOST", "http://localhost:8000")
-    redirect_uri = f"{backend_host}/auth/github/callback"
+    redirect_uri = f"{settings.BACKEND_HOST}/auth/github/callback"
     url = get_github_authorize_url(redirect_uri)
     return RedirectResponse(url)
 
@@ -56,8 +55,7 @@ async def auth_github_callback(
     if not code:
         raise HTTPException(status_code=400, detail="Missing code")
 
-    backend_host = os.getenv("BACKEND_HOST", "http://localhost:8000")
-    redirect_uri = f"{backend_host}/auth/github/callback"
+    redirect_uri = f"{settings.BACKEND_HOST}/auth/github/callback"
 
     # Exchange code for tokens
     try:
@@ -98,7 +96,6 @@ async def auth_github_callback(
     )
 
     # Build frontend redirect URL
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-    redirect_url = build_frontend_redirect_url(frontend_url, response_data)
+    redirect_url = build_frontend_redirect_url(settings.FRONTEND_URL, response_data)
 
     return RedirectResponse(redirect_url)

@@ -1,6 +1,6 @@
-import os
 from typing import Optional
 import requests
+from .config import settings
 
 GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -12,7 +12,7 @@ GITHUB_USERINFO_URL = "https://api.github.com/user"
 
 
 def get_google_authorize_url(redirect_uri: str, state: Optional[str] = None) -> str:
-    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    client_id = settings.GOOGLE_CLIENT_ID
     scope = "openid email profile"
     params = {
         "client_id": client_id,
@@ -32,8 +32,8 @@ def get_google_authorize_url(redirect_uri: str, state: Optional[str] = None) -> 
 
 
 def exchange_code_for_tokens(code: str, redirect_uri: str) -> dict:
-    client_id = os.getenv("GOOGLE_CLIENT_ID")
-    client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+    client_id = settings.GOOGLE_CLIENT_ID
+    client_secret = settings.GOOGLE_CLIENT_SECRET
     data = {
         "code": code,
         "client_id": client_id,
@@ -65,7 +65,7 @@ def get_github_authorize_url(redirect_uri: str, state: Optional[str] = None) -> 
     Returns:
         str: Complete authorization URL
     """
-    client_id = os.getenv("GITHUB_CLIENT_ID")
+    client_id = settings.GITHUB_CLIENT_ID
     scope = "read:user user:email"
     params = {
         "client_id": client_id,
@@ -90,8 +90,8 @@ def exchange_github_code_for_tokens(code: str, redirect_uri: str) -> dict:
     Returns:
         dict: Token response containing access_token
     """
-    client_id = os.getenv("GITHUB_CLIENT_ID")
-    client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+    client_id = settings.GITHUB_CLIENT_ID
+    client_secret = settings.GITHUB_CLIENT_SECRET
     data = {
         "code": code,
         "client_id": client_id,

@@ -1,12 +1,9 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.routes import auth_google, auth_github, problems, tags, constraints, compile_problem, submissions, auth, users
 from app.database.connection import init_db
-import os
+from app.core.config import settings
 from fastapi.responses import JSONResponse
 from app.database.admin import setup_admin
 from app.database.connection import engine, get_db
@@ -27,7 +24,7 @@ app = FastAPI(lifespan=lifespan)
 origins = [
     "http://localhost:5173",  # Vite default port
     "http://localhost:3000",  # Alternative frontend port
-    os.getenv("FRONTEND_URL", "http://localhost:5173"),  # From environment variable
+    settings.FRONTEND_URL,  # From environment variable
 ]
 
 app.add_middleware(

@@ -1,15 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
-import os
 from typing import Generator
+from ..core.config import settings
 
 
-# Read database URL from environment
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    # "postgresql://postgres:SouMen1185@localhost:5432/codemaster"
-)
+# Use database URL from settings
+DATABASE_URL = settings.DATABASE_URL
 
 # Create engine
 engine = create_engine(

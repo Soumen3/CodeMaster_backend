@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-import os
 
+from ..core.config import settings
 from ..core.oauth import get_google_authorize_url, exchange_code_for_tokens, get_userinfo
 from ..database.connection import get_db
 from ..database.models import OAuthProvider
@@ -25,8 +25,7 @@ async def auth_google(request: Request):
     Initiate Google OAuth flow.
     Redirects the user to Google's OAuth consent screen.
     """
-    backend_host = os.getenv("BACKEND_HOST", "http://localhost:8000")
-    redirect_uri = f"{backend_host}/auth/google/callback"
+    redirect_uri = f"{settings.BACKEND_HOST}/auth/google/callback"
     url = get_google_authorize_url(redirect_uri)
     return RedirectResponse(url)
 
@@ -45,8 +44,7 @@ async def auth_google_callback(
     if not code:
         raise HTTPException(status_code=400, detail="Missing code")
 
-    backend_host = os.getenv("BACKEND_HOST", "http://localhost:8000")
-    redirect_uri = f"{backend_host}/auth/google/callback"
+    redirect_uri = f"{settings.BACKEND_HOST}/auth/google/callback"
 
     # Exchange code for tokens
     try:
@@ -88,7 +86,6 @@ async def auth_google_callback(
     )
 
     # Build frontend redirect URL
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-    redirect_url = build_frontend_redirect_url(frontend_url, response_data)
+    redirect_url = build_frontend_redirect_url(settings.FRONTEND_URL, response_data)
 
     return RedirectResponse(redirect_url)
